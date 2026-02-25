@@ -255,9 +255,10 @@ canvas { display:block; width:100%; }
   <div class="safe-top"></div>
   <div class="header">
     <button class="btn btn-ghost" onclick="cancelLog()">← Back</button>
-    <input type="datetime-local" id="log-timestamp"
-      style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-family:inherit;font-size:12px;font-weight:500;padding:6px 10px;outline:none;-webkit-appearance:none;"
-      oninput="currentWorkout.timestamp=new Date(this.value).toISOString()" />
+    <button class="btn btn-ghost" id="log-timestamp" onclick="openDatePicker()"
+      style="font-size:12px; color:var(--text-muted); gap:5px;">
+      <span id="log-timestamp-text"></span><span style="font-size:10px; opacity:.6;">✎</span>
+    </button>
   </div>
   <div class="scroll-body">
     <input class="name-input" id="log-name" type="text" placeholder="Workout Name…" maxlength="40" />
@@ -430,6 +431,27 @@ canvas { display:block; width:100%; }
   </button>
 </nav>
 
+<!-- DATE PICKER MODAL -->
+
+<div id="datepicker-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:flex-end;" onclick="closeDatePicker()">
+  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:22px 20px;padding-bottom:max(env(safe-area-inset-bottom),28px);width:100%;border-top:1px solid var(--border);" onclick="event.stopPropagation()">
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Edit Date &amp; Time</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Log this workout for a different day</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+      <label class="field">Date
+        <input type="date" id="dp-date" />
+      </label>
+      <label class="field">Time
+        <input type="time" id="dp-time" />
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeDatePicker()">Cancel</button>
+      <button class="btn btn-accent" style="flex:2" onclick="applyDatePicker()">Apply</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="modal-overlay" onclick="closeModal()">
@@ -511,11 +533,7 @@ function cancelLog() { if(isEditing){showView('detail');}else{showTab('home');} 
 
 function renderLogView() {
   document.getElementById('log-name').value=currentWorkout.name||'';
-  // datetime-local needs format "YYYY-MM-DDTHH:MM" in local time
-  const d = new Date(currentWorkout.timestamp);
-  const pad = n => String(n).padStart(2,'0');
-  const local = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  document.getElementById('log-timestamp').value = local;
+  document.getElementById('log-timestamp-text').textContent=fmtDT(currentWorkout.timestamp);
   renderCardioList(); renderExerciseList();
 }
 
@@ -800,7 +818,31 @@ function drawChart(pts) {
   });
 }
 
-// ── BACKUP REMINDER ──────────────────────────────────
+// ── DATE PICKER ──────────────────────────────────────
+
+function openDatePicker() {
+  const d   = new Date(currentWorkout.timestamp);
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('dp-date').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  document.getElementById('dp-time').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const ov = document.getElementById('datepicker-overlay');
+  ov.style.display='flex';
+}
+
+function closeDatePicker() {
+  document.getElementById('datepicker-overlay').style.display='none';
+}
+
+function applyDatePicker() {
+  const date = document.getElementById('dp-date').value;
+  const time = document.getElementById('dp-time').value;
+  if (!date || !time) { showToast('Pick a date and time'); return; }
+  currentWorkout.timestamp = new Date(`${date}T${time}`).toISOString();
+  document.getElementById('log-timestamp-text').textContent = fmtDT(currentWorkout.timestamp);
+  closeDatePicker();
+}
+
+
 
 const BACKUP_KEY      = 'gymlog_last_backup';
 const DISMISS_KEY     = 'gymlog_banner_dismissed';
