@@ -3,13 +3,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="GymLog" />
   <title>GymLog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 ```
 :root {
@@ -30,10 +32,10 @@
 }
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-html { font-size:16px; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,sans-serif; min-height:100dvh; max-width:430px; margin:0 auto; overflow-x:hidden; }
+html { font-size:16px; background:#0c0c0e; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,sans-serif; min-height:100vh; min-height:100dvh; max-width:430px; margin:0 auto; overflow-x:hidden; }
 
-.view { display:none; flex-direction:column; min-height:100dvh; animation:fadeIn .18s ease; }
+.view { display:none; flex-direction:column; min-height:100vh; min-height:100dvh; animation:fadeIn .18s ease; }
 .view.active { display:flex; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
 
@@ -949,9 +951,18 @@ function showToast(msg) {
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-// ── PREVENT DOUBLE-TAP ZOOM ──────────────────────────
+// ── PREVENT DOUBLE-TAP ZOOM (safe version) ───────────
+// Only prevent zoom on non-interactive elements
 let lastTap=0;
-document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
+document.addEventListener('touchend', e => {
+  const tag = e.target.tagName.toLowerCase();
+  const isInteractive = ['button','input','select','textarea','a','label'].includes(tag)
+    || e.target.closest('button, input, select, a, label');
+  if (isInteractive) return; // never block real controls
+  const now = Date.now();
+  if (now - lastTap < 300) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
 
 // ── INIT ─────────────────────────────────────────────
 renderHome();
