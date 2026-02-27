@@ -33,8 +33,8 @@
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,sans-serif; min-height:100vh; max-width:430px; margin:0 auto; overflow-x:hidden; }
 
 ```
-.view { display:none; flex-direction:column; min-height:100vh; animation:fadeIn .18s ease; }
-.view.active { display:flex; }
+.view { display:none !important; flex-direction:column; min-height:100vh; }
+.view.active { display:flex !important; animation:fadeIn .18s ease; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
 
 .safe-top { height:max(env(safe-area-inset-top,0px),44px); flex-shrink:0; }
